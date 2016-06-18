@@ -1,0 +1,64 @@
+import java.awt.*;
+
+import javax.swing.*;
+
+//imported mysql driver using jar loader
+
+/*
+I declare that the attached assignment is my own work in accordance with Seneca Academic
+Policy. No part of this assignment has been copied manually or electronically from any other
+source (including web sites) or distributed to other students.
+Name:  Lauren Caldwell
+Student ID: 023846157
+*/
+
+class A3DBClass extends JFrame {
+	
+	/**
+	 * This class runs the frame that contains the two GUIs.
+	 */
+	
+	private static final long serialVersionUID = -6556799935715132193L;
+	private	JTabbedPane tabbedPane;
+	private	JPanel panel1;
+	private	JPanel panel2;
+
+	public A3DBClass(){
+			
+		setTitle( "Lauren Caldwell Assignment 3" );
+		setSize( 1100, 800 );
+
+		JPanel topPanel = new JPanel();
+		topPanel.setLayout( new BorderLayout() );
+		getContentPane().add( topPanel );
+
+		makePanel1();
+		makePanel2();
+
+		tabbedPane = new JTabbedPane();
+		tabbedPane.addTab( "Assignment 2", panel1 );
+		tabbedPane.addTab( "Assignment 3", panel2 );
+
+		topPanel.add( tabbedPane, BorderLayout.CENTER );
+	}
+
+	public void makePanel1(){
+		//creates the first panel using SequenceGUI
+		panel1 = new SequenceGUI();
+		this.add(panel1, BorderLayout.SOUTH);
+		
+	}
+
+	public void makePanel2(){
+		//creates the second panel using DatabaseConnect
+		panel2 = new DatabaseConnect();
+		this.add(panel2, BorderLayout.SOUTH);
+		
+	}
+
+	public static void main( String args[] ){
+		// Run the whole frame
+		A3DBClass mainFrame	= new A3DBClass();
+		mainFrame.setVisible( true );
+	}
+}
