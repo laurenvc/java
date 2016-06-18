@@ -1,0 +1,266 @@
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Label;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.DriverManager;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+
+/*
+I declare that the attached assignment is my own work in accordance with Seneca Academic
+Policy. No part of this assignment has been copied manually or electronically from any other
+source (including web sites) or distributed to other students.
+Name:  Lauren Caldwell
+Student ID: 023846157
+*/
+
+public class DatabaseConnect extends JPanel implements ActionListener {
+
+	/**This class connects to a database on zenit and lets the user view the contents tables,
+	 * then choose which table to view.
+	 */
+	
+	DefaultTableModel model = new DefaultTableModel(); 
+	JTable table = new JTable(model);
+	JScrollPane scroller = new JScrollPane(table);
+	
+	private static final long serialVersionUID = 6654984982091867137L;
+	String tableSelected=null;
+
+	public DatabaseConnect(){
+	
+		//setting up some containers
+		JPanel controlArea = new JPanel();
+		controlArea .setLayout(new BoxLayout(controlArea, BoxLayout.PAGE_AXIS));
+		JPanel box1 = new JPanel();
+		JPanel box2 = new JPanel();
+		controlArea.setFont(new Font("Courier", Font.PLAIN, 25));
+		setPreferredSize(new Dimension(1100,800));
+		controlArea.add(Box.createRigidArea(new Dimension(0,4)));
+		Label tablesLabel = new Label("Tables to choose from:");
+		tablesLabel.setFont(new Font("Courier", Font.PLAIN, 25));
+		box1.add(tablesLabel);
+		this.add(controlArea, BorderLayout.SOUTH);
+		controlArea.add(box1, BorderLayout.NORTH);
+		controlArea.add(box2, BorderLayout.SOUTH);
+		
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+		} 
+		catch (ClassNotFoundException e) {
+			//error message for if the jar file has not been loaded
+			e.printStackTrace();
+			System.out.println("Missing MySQL Jar file...");
+		}
+		
+		//String for database connection
+		String databaseConnection = "jdbc:mysql://zenit.senecac.on.ca/bif724_161a04";
+		//Things required for the connection
+		java.sql.Connection conn = null;
+		Statement stmt = null;
+		String usernameString = "bif724_161a04"; 
+		String passwordString = "snNE6589";
+		boolean connected = false;
+		//get connection	
+		try {
+			conn = DriverManager.getConnection(databaseConnection, usernameString, passwordString);
+			stmt = conn.createStatement();
+			connected = true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			connected = false;
+		}
+		
+		
+		//code to show tables (get table names)
+		DatabaseMetaData meta = null;
+		ResultSet res = null;
+		int counter = 0;
+		try {
+			meta = conn.getMetaData();
+		} catch (SQLException e2) {
+			// this one tries to connect and get meta data
+			e2.printStackTrace();
+		}
+		try {
+			res = meta.getTables(null, null, "%", null);
+		} catch (SQLException e1) {
+			//this one gets catalogs
+			e1.printStackTrace();
+		}
+		try {
+			while (res.next()) {
+			   counter++;
+			   //counts the number of tables
+			}
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			res.close();
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+		
+		//make an array of the size of the number of tables
+		JRadioButton[] buttons = new JRadioButton[counter];
+		ButtonGroup tableButtons = new ButtonGroup();
+		
+		//next populate array with the names of the tables
+		int nameCounter = 0;
+		try {
+			meta = conn.getMetaData();
+		} catch (SQLException e2) {
+			// this one tries to connect and get meta data
+			e2.printStackTrace();
+		}
+		try {
+			res = meta.getTables(null, null, "%", null);
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			while (res.next()) {
+			   //pushes the names to the button at each position in the array
+			   String name = res.getString(3);
+			   buttons[nameCounter] = new JRadioButton(res.getString(3));
+			   buttons[nameCounter].setActionCommand(name);
+			   buttons[nameCounter].addActionListener(this);
+			   tableButtons.add(buttons[nameCounter]);
+			   box1.add(buttons[nameCounter]);
+			   buttons[nameCounter].setFont(new Font("Courier", Font.PLAIN, 25));
+			   nameCounter++;
+			   //result: makes many buttons named after the tables, with action commands that are the name of the table
+			   //therefore, the SQL command can be built from whatever the action command is that is sent upon submit
+			}	
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			res.close();
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+		//setting up boxes and buttons
+		JButton finalButton = new JButton("Submit");
+		finalButton.setFont(new Font("Courier", Font.PLAIN, 25));
+		finalButton.setActionCommand("clicked");
+		finalButton.addActionListener(this);
+		box1.add(finalButton);
+		Dimension x = new Dimension(900,600);
+		scroller.setPreferredSize(x);
+		box2.add(scroller);
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent ae){
+		
+		boolean connected = false;
+		Statement stmt = null;
+		ResultSet records = null;
+		java.sql.Connection conn = null;
+		String usernameString = "bif724_161a04"; 
+		String passwordString = "snNE6589";
+		String databaseConnection = "jdbc:mysql://zenit.senecac.on.ca/bif724_161a04";
+		
+		//these strings are used in making the SQL statements
+		String chosenButton = "";
+		String finalSQL = "";
+		
+		try {
+			conn = DriverManager.getConnection(databaseConnection, usernameString, passwordString);
+			stmt = conn.createStatement();
+			connected = true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			connected = false;
+		}
+		
+		if (ae.getSource() instanceof JRadioButton) {
+			//This passes the name of the chosen button into the action listener
+            JRadioButton button = (JRadioButton) ae.getSource();
+            chosenButton = button.getText();
+            finalSQL = "select * from " + chosenButton + ";";
+            tableSelected = finalSQL;
+        }
+		
+		if (ae.getActionCommand() == "clicked") {
+			model.setRowCount(0);
+			model.setColumnCount(0);
+			int columnCount = 0;
+			if(connected == true){
+				//if connected, it will find the table
+				try {
+					//records is the result set
+					records = stmt.executeQuery(tableSelected);
+					ResultSetMetaData metaData = records.getMetaData();
+					//this gets the number of columns in the table
+					columnCount = metaData.getColumnCount();
+					for (int i = 1; i <= columnCount; i++ ){
+						//adds columns based on columnCount, including column name
+						String name = metaData.getColumnName(i);
+						model.addColumn(name);
+					}
+
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				try {
+					//this loop will iterate through all the records in the record set
+					while(records.next()){
+						Object[] rowPieces = new Object[columnCount];
+						//this loop iterates through each column in the row
+						for(int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
+							Object object = records.getObject(columnIndex);
+					        //assign each piece to its spot in the row array
+					        rowPieces[columnIndex-1] = object;
+					    }
+						//Send the row into the JTable
+						model.addRow(rowPieces);
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	public static void main(String[] args) {
+		//start the GUI
+		try {
+			UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+				| UnsupportedLookAndFeelException e) {
+			e.printStackTrace();
+		}
+		
+		javax.swing.SwingUtilities.invokeLater( new Runnable(){
+				public void run(){
+					start();
+				}
+		}); 
+	}
+
+	private static void start (){
+		//create a frame
+		JFrame frame = new JFrame("Assignment 3 GUI");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		//create pane
+		JComponent theFrame = new DatabaseConnect();
+		theFrame.setOpaque(true);
+		//link the frame and the panel
+		frame.setContentPane(theFrame);
+		
+		//display the window
+		frame.pack();
+		frame.setVisible(true);
+	}
+}
