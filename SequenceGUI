@@ -1,0 +1,552 @@
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.awt.Label;
+import java.awt.Button;
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
+/*
+I declare that the attached assignment is my own work in accordance with Seneca Academic
+Policy. No part of this assignment has been copied manually or electronically from any other
+source (including web sites) or distributed to other students.
+Name:  Lauren Caldwell
+Student ID: 023846157
+*/
+
+/*
+ * This class is the same as for Assignment 2. It takes sequence inputs and reformats
+ * them as requested.
+ */
+
+
+public class SequenceGUI extends JPanel implements ActionListener{
+	
+	
+	//automatically generated a serial id number
+	private static final long serialVersionUID = -2425412923966104537L;
+	
+	//Make the parts of the GUI:
+	//label for sequence:
+	Label sequenceLabel;
+	
+	//spot to paste sequence with vertical scrolling:
+	JTextArea sequenceBox;
+	
+	//Scrollbar
+	JScrollPane sequenceBoxScroller;
+	
+	//label for dropdownbox of lengths
+	Label sequenceLengthLabel;
+	
+	//dropdown list of values for number of characters per line:
+	JComboBox<String> sequenceLengthBox;
+	
+	//string for length value, defaults to 60
+	String sequenceLengthValue;
+	
+	//Label for check box:
+	Label checkBoxLabel;
+	
+	//check box for if sequence should be in groups of ten, defaults to off:
+	JCheckBox checkBox;
+	
+	//boolean for if it is checked or not
+	boolean checked;
+	
+	//label for radio buttons:
+	Label radioLabel;
+	
+	//group for buttons:
+	ButtonGroup caseButtons;
+	
+	//Two radio buttons to toggle output being upper/lowercase, default to lowercase:
+	boolean buttonStatus = false; //up = true, low = false, defaults to false
+	JRadioButton upperButton;
+	JRadioButton lowerButton;
+	
+	//blank label as placeholder
+	Label blankLabel;
+	
+	//A button to process the sequence 
+	Button processButton;
+	
+	//A button to reset to defaults
+	Button resetButton;
+	
+	//JOptionPane for Reset Button
+	JOptionPane resetOptionPane;
+	
+	//label for output box
+	Label outputLabel;
+	
+	//scroller for outputbox
+	JScrollPane outputBoxScroller;
+	
+	//another text area for output of sequence, long enough to fit 70 char without horizontal scrolling
+	JTextArea outputBox;
+	
+	//label for info box
+	Label baseInfoBoxLabel;
+	
+	//base info box scroller
+	JScrollPane baseInfoBoxScroller;
+	
+	//Another area where you display the number and percentage of each base, and the total sequence length
+	JTextArea baseInfoBox;
+	
+	public SequenceGUI(){
+		
+		//create a layout with given parameters 
+		JPanel controlsArea = new JPanel(new GridLayout(10, 2, 5, 5));
+		controlsArea.setFont(new Font("Courier", Font.PLAIN, 16)); 
+
+		
+		//AbstractButton listPane;
+		//listPane.setLayout(new BoxLayout(listPane, BoxLayout.PAGE_AXIS));
+		
+		//set the preferred size; inherited from JPanel.
+		setPreferredSize(new Dimension(900,600));
+		
+		//add sequenceLabel to controlsArea:
+		sequenceLabel = new Label("Sequence:");
+		controlsArea.add(sequenceLabel);
+		
+		//add sequenceBox to the layout
+		sequenceBox = new JTextArea(3,40);
+		sequenceBox.setFont(new Font("Courier", Font.PLAIN, 16));
+		JScrollPane sequenceBoxScroller = new JScrollPane(sequenceBox);
+		sequenceBoxScroller.setVerticalScrollBarPolicy( JScrollPane. VERTICAL_SCROLLBAR_ALWAYS ); 
+		sequenceBoxScroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		controlsArea.add(sequenceBoxScroller);
+		
+		//add sequenceLengthLabel
+		sequenceLengthLabel = new Label("Bases per line:");
+		controlsArea.add(sequenceLengthLabel);
+		
+		//instantiate and add sequence length label to layout
+		String[] lengthOptions = new String[] { "40", "50", "60", "70" };
+		sequenceLengthBox = new JComboBox<String>(lengthOptions);
+		sequenceLengthBox.setSelectedIndex(2);
+		sequenceLengthBox.setFont(new Font("Courier", Font.PLAIN, 16));
+		controlsArea.add(sequenceLengthBox);
+		//pull value of sequenceLength out of JComboBox
+		sequenceLengthValue = "60";//default is 60
+		sequenceLengthBox.addActionListener (new  ActionListener () {
+			public void actionPerformed(ActionEvent a) {
+				sequenceLengthValue = sequenceLengthBox.getSelectedItem().toString();
+			}
+		});
+		
+		
+		//add checkbox label
+		checkBoxLabel = new Label("Groups of 10:");
+		checkBoxLabel.setFont(new Font("Courier", Font.PLAIN, 16));
+		controlsArea.add(checkBoxLabel);
+		
+		//add checkbox
+		checkBox = new JCheckBox("Yes");
+		checkBox.setFont(new Font("Courier", Font.PLAIN, 16));
+		controlsArea.add(checkBox);
+		checkBox.setSelected(false); //the checkbox defaults to false as in the instructions
+		checkBox.addActionListener(this); 
+
+		//label for radio buttons
+		radioLabel = new Label("Case Choice:");
+		controlsArea.add(radioLabel);
+				
+		//JRadioButtons go here..
+		caseButtons = new ButtonGroup();
+		upperButton = new JRadioButton("Uppercase");
+		upperButton.setFont(new Font("Courier", Font.PLAIN, 16));
+		upperButton.setActionCommand("upperCaseNow");
+		lowerButton = new JRadioButton("Lowercase");
+		lowerButton.setFont(new Font("Courier", Font.PLAIN, 16));
+		lowerButton.setActionCommand("lowerCaseNow");
+		lowerButton.setSelected(true);
+		caseButtons.add(lowerButton);
+		caseButtons.add(upperButton);
+		upperButton.addActionListener(this);
+		lowerButton.addActionListener(this);
+		
+		controlsArea.add(upperButton);
+		//blank label to take up space
+		blankLabel = new Label("");
+		controlsArea.add(blankLabel);
+		controlsArea.add(lowerButton);
+		
+		//add processButton to layout
+		processButton = new Button("Process");
+		controlsArea.add(processButton);
+		processButton.addActionListener(this);
+		//give it a string to act with;
+		processButton.setActionCommand("process clicked");
+		
+		//add reset button
+		resetButton = new Button("Reset");
+		controlsArea.add(resetButton);
+		resetButton.addActionListener(this);
+		//string to act with:
+		resetButton.setActionCommand("reset clicked");
+		
+		//add outputBox Label
+		outputLabel = new Label("Output:");
+		controlsArea.add(outputLabel);
+		
+		//add outputBox
+		outputBox = new JTextArea();
+		outputBox.setFont(new Font("Courier", Font.PLAIN, 16));
+		JScrollPane outputBoxScroller = new JScrollPane(outputBox);
+		outputBoxScroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); 
+		outputBoxScroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		outputBox.setEditable(false);
+		controlsArea.add(outputBoxScroller);
+		
+		//add baseInfoBoxLabel
+		baseInfoBoxLabel = new Label("Base Information:");
+		controlsArea.add(baseInfoBoxLabel);
+		
+		//add Base info box
+		baseInfoBox = new JTextArea();
+		baseInfoBox.setFont(new Font("Courier", Font.PLAIN, 16));
+		JScrollPane baseInfoBoxScroller = new JScrollPane(baseInfoBox);
+		baseInfoBoxScroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); 
+		baseInfoBoxScroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		baseInfoBox.setEditable(false);
+		controlsArea.add(baseInfoBoxScroller);
+		
+		//must add controls area layout JPanel
+		this.add(controlsArea, BorderLayout.SOUTH);
+
+	}
+		@Override
+		public void actionPerformed(ActionEvent ae){
+			//actions commands go to here:
+			//radio button actions
+			if(ae.getActionCommand() == "upperCaseNow"){
+				buttonStatus = true;
+			}
+			if(ae.getActionCommand() == "lowerCaseNow"){
+				buttonStatus = false;
+			}
+			//checkbox action
+			checked = checkBox.isSelected(); //returns a boolean, true if selected and false if not. 
+
+			//Process button actions:
+			if(ae.getActionCommand() == "process clicked"){
+				//System.out.println("Update: Process button was clicked");
+				String sequenceInputText = sequenceBox.getText();
+				String outputSequence = processInputText(sequenceInputText, sequenceLengthValue, buttonStatus, checked); //returns output string from method processInputText
+				outputBox.setText(outputSequence);
+			}
+			//Reset button actions:
+			if(ae.getActionCommand() == "reset clicked"){
+				String theMessage = ("Do you really want to reset everything?");
+				resetOptionPane = new JOptionPane();
+				int resetResult = JOptionPane.showConfirmDialog(null, theMessage,"Reset All Fields", JOptionPane.YES_NO_CANCEL_OPTION);
+				//if the reset, yes button is clicked, then set everything back to defaults. 
+				if (resetResult == 0){
+					sequenceBox.setText(null);
+					sequenceLengthBox.setSelectedItem("60");
+					sequenceLengthBox.setSelectedIndex(2);
+					sequenceLengthValue = "60";
+					checkBox.setSelected(false);
+					lowerButton.setSelected(true);
+					outputBox.setText(null);
+					baseInfoBox.setText(null);
+				}
+			}
+		}
+		public String processInputText (String text, String sequenceLengthValue, boolean buttonStatus, boolean checked) {
+			//This method handles all of the processing of the input sequence by itself as well as through several other methods.
+			String intext = text;
+			String innum = sequenceLengthValue;
+			//String casedText = null;
+			String output = null; 
+			Pattern pat = Pattern.compile("^[actgACTG\n]+$");
+			Matcher mat = pat.matcher(intext);
+			if (mat.find() ) { //if true, sequence matched only actg/ACTG and is therefore approved. 
+				//Convert to upper or lowercase, whichever eas selected.
+				intext = intext.replace("\n", "");
+				if (buttonStatus == true) {
+					output = upConvert(intext);
+				} else if (buttonStatus == false) {
+					output = lowConvert(intext);
+				}
+				//If the checkbox was checked, then process sequence into groups of 10. 
+				if (checked == true){
+					output = splitProcess(output);
+				}
+				//Base counter process:
+				String baseCountResultString = baseCount(output);
+				baseInfoBox.setText(baseCountResultString);
+				//split into the right amount of characters per line based on sequenceLengthNum:
+				output = lineProcess(output, innum);
+				return output;
+			}
+			else { //if false, sequence matched other characters and so it is invalid
+				//pop up a warning box saying sequence is invalid but DON'T reset fields
+				String message = "Sequence contains invalid characters!\nSequence may only contain the characters atcg/ATCG!";
+				JOptionPane.showMessageDialog(null, message, "Invalid Sequence", JOptionPane.OK_OPTION);
+				return "";
+			}
+		}
+		//if uppercase is selected, convert all to upper:
+		public String upConvert(String intext) {
+			//replace lowercase letters with uppercase using replaceAll
+			String uppedText = intext.replaceAll("a", "A");
+			uppedText = uppedText.replaceAll("t", "T");
+			uppedText = uppedText.replaceAll("c", "C");
+			uppedText = uppedText.replaceAll("g", "G");
+			return uppedText;
+		}
+		//if lowercase is selected, convert all to lower:
+		public String lowConvert(String intext) {
+			//replace uppercase letters with lowercase using replaceAll
+			String lowedText = intext.replaceAll("A", "a");
+			lowedText = lowedText.replaceAll("T", "t");
+			lowedText = lowedText.replaceAll("C", "c");
+			lowedText = lowedText.replaceAll("G", "g");
+			return lowedText;
+		}
+		public String splitProcess(String output){
+			//this method processes the sequence into groups of 10 if that option is selected. 
+			int groups = output.length(); 
+			int rem = groups % 10; //remainder after the sequence has been split into groups of 10
+			int groupTens = groups / 10; //actual division to see how many groups there are 
+			int lastGroup = ((groupTens * 10)); //the point in the string where the remainder group starts
+			String finalOutput = ""; 
+			//use stringBuilder to concatenate as it is faster.
+			StringBuilder stb = new StringBuilder(finalOutput);
+			int y = 0;
+			for (int x=0; x < groupTens; x++) { 
+				String piece = output.substring(y, y+10);
+				piece = piece + " ";
+				stb.append(piece);
+				y=y+10;
+			}
+			//add in the remainder left at the end
+			String lastPiece = output.substring(lastGroup, lastGroup+rem);
+			stb.append(lastPiece);
+			//use trim() to remove beginning and ending whitespace
+			return finalOutput = (stb.toString()).trim();
+		}
+		public String baseCount(String output){
+			//perform all calculations to determine base statistics. 
+			String text = output;
+			String finalOutput = null; 
+			double numA, numC, numT, numG, perA, perC, perT, perG = 0;
+			String A, T, C, G = null;
+			numA = oneCount(text, 'a');
+			numC = oneCount(text, 'c');
+			numG = oneCount(text, 'g');
+			numT = oneCount(text, 't');
+			double numTotal = numA + numT + numG + numC;
+			perA = (numA / numTotal) * 100;
+			perC = (numC / numTotal) * 100;
+			perG = (numG / numTotal) * 100;
+			perT = (numT / numTotal) * 100;
+			//set up the decimal format to cut off the percentage numbers (otherwise they have too many decimal places).
+			DecimalFormat d = new DecimalFormat("#.##");
+			A = d.format(perA);
+			C = d.format(perC);
+			G = d.format(perG);
+			T = d.format(perT);
+			//concatenate final output out of those 4 nums:
+			finalOutput = ("Base Counts: A: " + numA + "; T: " + numT + "; G: " + numG + "; C: " + numC + "\nBase Percents: " + A + "% A; " + T + "% T; " + G + "% G; " + C + "% C");
+			return finalOutput;
+		}
+		public int oneCount(String text, char x){
+			//count the number of the given character in the given string:
+			String y = Character.toString(x);
+			int count = 0;
+			Pattern pat = Pattern.compile(y, Pattern.CASE_INSENSITIVE);
+			Matcher mat = pat.matcher(text);
+			while (mat.find()) {
+				count++;
+			}
+			return count;
+		}
+		public String lineProcess(String output, String innum){
+			//process the sequence into the required length per line:
+			String sequence = "";
+			StringBuilder s = new StringBuilder(sequence);
+			String chunk;
+			int num = 0;
+			//int extra is used to account for the extra characters required if the sequence is separated into groups of 10
+			int extra = 0;
+			if (innum == "40"){
+				num = 40;
+				extra = 4;
+			}
+			if (innum == "50"){
+				num = 50;
+				extra = 5;
+			}
+			if (innum == "60"){
+				num = 60;
+				extra = 6;
+			}
+			if (innum == "70"){
+				num = 70;
+				extra = 7;
+			}
+			if (checked == false){
+				//this will put together the final output with the correct leading numbers and spaces.
+				int y = 0;
+				int finalNum = 0;
+				String spaces = "    ";
+				String finalString = "";
+				int groups = output.length() / num;
+				int rem = (output.length()) % num;
+				for(int x = 0; x < groups; x++){
+					chunk = output.substring((num * x), (num * x + num));
+					int spaceNum = (num * x + 1);
+					if (spaceNum < 10) {
+						spaces = "    ";
+					}else if (spaceNum < 100) {
+						spaces = "   "; 
+					}else if (spaceNum < 1000) {
+						spaces = "  ";
+					}else if (spaceNum < 10000) {
+						spaces = " ";
+					}else{
+						spaces = "";
+					}
+					s.append(spaces + spaceNum + " " + chunk + "\n");
+					y = x;
+				}
+				
+				if ( output.length() > num ) {
+					//this will handle the last line
+					finalString = (output.substring((num * y + num), (num * y + num + rem)));
+					finalNum = (num * y + num + 1);
+					if (finalNum < 100) {
+						spaces = "   "; 
+					}else if (finalNum < 1000) {
+						spaces = "  ";
+					}else if (finalNum < 10000) {
+						spaces = " ";
+					}else{
+						spaces = "";
+					}
+					s.append(spaces + finalNum + " " + finalString);
+				}
+				else if ( output.length() < num ) { //if this is the case, the for loop was not used and the string must be calculated here.
+					finalString = (output.substring(0));
+					finalNum = 1;
+					s.append(spaces + finalNum + " " + finalString);
+				}
+
+			}
+			if (checked == true){
+				//include spaces
+				//this will put together the final output with the correct spacing and leading numbers.
+				int value = 0;
+				int y = 0;
+				num = num + extra;
+				String finalString = "";
+				int finalNum = 0;
+				int groups = output.length() / num;
+				int rem = (output.length()) % num;
+				String spaces = "    ";
+				for(int x = 0; x < groups; x++){
+					//value is for helping calculate the leading number
+					if (x == 0) {
+						value = 1;
+					}else{
+						value = value + num - extra ; 
+					}
+					int spaceNum = (num * x + 1);
+					if (spaceNum < 10) {
+						spaces = "    ";
+					}else if (spaceNum < 100) {
+						spaces = "   "; 
+					}else if (spaceNum < 1000) {
+						spaces = "  ";
+					}else if (spaceNum < 10000) {
+						spaces = " ";
+					}else{
+						spaces = "";
+					}
+					chunk = output.substring((num * x), (num * x + num));
+					s.append((spaces + value + " " + chunk + "\n"));
+					y = x;
+				}
+				if ( output.length() > num ) { //handles the leftover piece of sequence
+					finalString = (output.substring((num * y + num), (num * y + num + rem)));
+					finalNum = ((num - extra) * y + num + 1 - (extra * 1));
+					System.out.println(finalNum);
+					if (finalNum < 100) {
+						spaces = "   "; 
+					}else if (finalNum < 1000) {
+						spaces = "  ";
+					}else if (finalNum < 10000) {
+						spaces = " ";
+					}else{
+						spaces = "";
+					}
+					s.append(spaces + finalNum + " " + finalString);
+				}
+				else if ( output.length() < num ) { //if this is the case, the for loop was not used and the string must be calculated here.
+					finalString = (output.substring(0));
+					finalNum = 1;
+					s.append(spaces + finalNum + " " + finalString);
+				}
+
+			}
+			return sequence = (s.toString());
+		}
+		public static void main(String[] args) {
+			
+			//start the GUI
+			try {
+				UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+					| UnsupportedLookAndFeelException e) {
+				e.printStackTrace();
+			}
+			
+			javax.swing.SwingUtilities.invokeLater( new Runnable(){
+					
+					public void run(){
+						startGUI();
+					}
+			}); 
+			
+		}
+		
+		private static void startGUI (){
+			//create a frame that is going to be the outer container for our GUI
+			JFrame frame = new JFrame("Assignment 2 GUI");
+			//set program to end when window is closed
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			
+			//create and set up the content pane 
+			JComponent theFrame = new SequenceGUI();
+			//make the content pane opaque (visible to the user)
+			theFrame.setOpaque(true);
+			//link the frame and the panel
+			frame.setContentPane(theFrame);
+			
+			//display the window
+			frame.pack();
+			frame.setVisible(true);
+		}
+}
