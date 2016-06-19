@@ -167,7 +167,7 @@ public class DatabaseConnect extends JPanel implements ActionListener {
 		ResultSet records = null;
 		java.sql.Connection conn = null;
 		String usernameString = "bif724_161a04"; 
-		String passwordString = "snNE6589";
+		String passwordString = "----";
 		String databaseConnection = "jdbc:mysql://zenit.senecac.on.ca/bif724_161a04";
 		
 		//these strings are used in making the SQL statements
